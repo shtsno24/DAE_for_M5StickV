@@ -16,7 +16,6 @@ def DAE_Net(input_shape=(32, 32, 3), Momentum=0.1, Dropout_rate=0.01):
     x = SpatialDropout2D(rate=Dropout_rate)(x)
     x = ReLU()(x)
 
-    x_0 = x
     x = MaxPooling2D(pool_size=(2, 2))(x)
     for _ in range(2):
         x = ZeroPadding2D(padding=((1, 1), (1, 1)))(x)
@@ -62,7 +61,6 @@ def DAE_Net(input_shape=(32, 32, 3), Momentum=0.1, Dropout_rate=0.01):
         x = ReLU()(x)
 
     x = UpSampling2D(size=(2, 2))(x)
-    x = Concatenate(axis=3)([x, x_0])
     x = ZeroPadding2D(padding=((1, 1), (1, 1)))(x)
     x = Conv2D(3, (3, 3))(x)
     x = BatchNormalization(momentum=Momentum)(x)

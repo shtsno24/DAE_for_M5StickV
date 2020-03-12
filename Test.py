@@ -23,7 +23,7 @@ try:
 
     # Prediction
     print("\n\nPrediction...\n")
-    prediction_img = model.predict(test_img)
+    prediction_img = model.predict(test_img / 255)
     prediction_img = tf.reshape(prediction_img, [32, 32, 3])
     prediction_img = tf.cast(prediction_img, tf.float32)
     prediction_img *= 255

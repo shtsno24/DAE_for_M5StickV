@@ -7,7 +7,7 @@ from tensorflow.keras.layers import LeakyReLU, Add, PReLU, SpatialDropout2D, Zer
 from tensorflow.keras.losses import sparse_categorical_crossentropy
 
 
-def Multi_Conv(x, output_depth, size="same", activation=True, internal_depth_ratio=3, Momentum=0.1, Dropout_rate=0.01):
+def Multi_Conv(x, output_depth, size="same", activation=True, internal_depth_ratio=4, Momentum=0.1, Dropout_rate=0.01):
 
     internal_depth = int(output_depth / internal_depth_ratio)
 
@@ -27,7 +27,13 @@ def Multi_Conv(x, output_depth, size="same", activation=True, internal_depth_rat
     x_conv_5 = SpatialDropout2D(rate=Dropout_rate)(x_conv_5)
     x_conv_5 = ReLU()(x_conv_5)
 
-    x = Concatenate(axis=3)([x_conv_3, x_conv_5])
+    x_conv_7 = ZeroPadding2D(padding=((1, 1), (1, 1)))(x_conv_5)
+    x_conv_7 = DepthwiseConv2D((3, 3))(x_conv_7)
+    x_conv_7 = BatchNormalization(momentum=Momentum)(x_conv_7)
+    x_conv_7 = SpatialDropout2D(rate=Dropout_rate)(x_conv_7)
+    x_conv_7 = ReLU()(x_conv_7)
+
+    x = Concatenate(axis=3)([x_conv_3, x_conv_5, x_conv_7])
     x = Conv2D(internal_depth, (1, 1))(x)
     x = BatchNormalization(momentum=Momentum)(x)
     x = SpatialDropout2D(rate=Dropout_rate)(x)
@@ -50,31 +56,31 @@ def Multi_Conv(x, output_depth, size="same", activation=True, internal_depth_rat
     return x
 
 
-def DAE_Net_2(input_shape=(32, 32, 3)):
+def DAE_Net(input_shape=(32, 32, 3)):
     inputs = Input(shape=input_shape)
 
     x_0 = Multi_Conv(inputs, 16, size="down")
-
     x_1 = Multi_Conv(x_0, 32, size="down")
+    x_2 = Multi_Conv(x_1, 64, size="down")
 
-    x = Multi_Conv(x_1, 128, size="down")
+    x_0 = MaxPooling2D(pool_size=(4, 4))(x_0)
+    x_1 = MaxPooling2D(pool_size=(2, 2))(x_1)
+    x = Concatenate(axis=3)([x_2, x_0, x_1])
 
-    x = Concatenate(axis=3)([x, x_0, x_1])
     for _ in range(2):
         x = Multi_Conv(x, 128)
 
-    x_2 = Multi_Conv(x, 32, size="up")
-
-    x_1 = Multi_Conv(x_2, 16, size="up")
-
-    x = Multi_Conv(x_1, 3, size="up")
+    x_2 = Multi_Conv(x, 64, size="up")
+    x_1 = Multi_Conv(x_2, 32, size="up")
+    x = Multi_Conv(x_1, 16, size="up")
+    x = Multi_Conv(x, 3, internal_depth_ratio=1)
     outputs = x
 
     model = Model(inputs, outputs)
     return model
 
 
-def DAE_Net(input_shape=(32, 32, 3), Momentum=0.1, Dropout_rate=0.01):
+def DAE_Net_2(input_shape=(32, 32, 3), Momentum=0.1, Dropout_rate=0.01):
     inputs = Input(shape=input_shape)
 
     x_skip = inputs

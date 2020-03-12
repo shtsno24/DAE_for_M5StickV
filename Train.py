@@ -30,7 +30,7 @@ try:
         (train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.cifar10.load_data()
         print(train_images.shape, type(train_images))
         print(test_images.shape, type(test_images))
-        train_images, test_images = train_images / 255.0, test_images / 255.0
+        train_images, test_images = train_images, test_images
         print("\n\nDone")
 
     # Load model
@@ -43,7 +43,7 @@ try:
         # Train model
         print("\n\nTrain Model...")
         model.compile(loss=tf.keras.losses.MeanSquaredError(), optimizer='adam', metrics=[tf.keras.metrics.MeanSquaredError()])
-        model.fit(train_images, train_images, validation_data=(test_images, test_images), epochs=EPOCHS,
+        model.fit(train_images, train_images / 255, validation_data=(test_images, test_images / 255), epochs=EPOCHS,
                   steps_per_epoch=int(TRAIN_DATASET_SIZE / BATCH_SIZE),
                   validation_steps=int(TEST_DATASET_SIZE / BATCH_SIZE))
         print("  Done\n\n")

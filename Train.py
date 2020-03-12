@@ -21,7 +21,7 @@ if gpus:
 
 try:
     with tf.device('/cpu:0'):
-        EPOCHS = 100
+        EPOCHS = 500
         TRAIN_DATASET_SIZE = 50000
         TEST_DATASET_SIZE = 10000
         BATCH_SIZE = 100

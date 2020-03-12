@@ -34,7 +34,7 @@ try:
         test_img = Image.open(TEST_IMG)
         test_data = np.array(test_img, dtype=np.float32)
         test_data_shape = test_data.shape
-        test_data /= 255.0
+        # test_data /= 255.0
         test_data = test_data.reshape(input_shape)
         interpreter.set_tensor(input_details[0]['index'], test_data)
 

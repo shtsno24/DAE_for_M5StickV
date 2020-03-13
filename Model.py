@@ -11,34 +11,26 @@ def Multi_Conv(x, output_depth, size="same", activation=True, internal_depth_rat
 
     internal_depth = int(output_depth / internal_depth_ratio)
 
-    x = Conv2D(internal_depth, (1, 1))(x)
-    x = ReLU()(x)
     x_skip = x
+    x_skip = MaxPooling2D(pool_size=(2, 2))(x_skip)
+    x_skip = UpSampling2D(size=(2, 2))(x_skip)
 
-    x_conv_3 = ZeroPadding2D(padding=((1, 1), (1, 1)))(x)
-    x_conv_3 = DepthwiseConv2D((3, 3))(x_conv_3)
-    x_conv_3 = BatchNormalization(momentum=Momentum)(x_conv_3)
-    x_conv_3 = SpatialDropout2D(rate=Dropout_rate)(x_conv_3)
-    x_conv_3 = ReLU()(x_conv_3)
+    x_conv = Conv2D(internal_depth, (1, 1))(x)
+    x_conv = BatchNormalization(momentum=Momentum)(x_conv)
+    x_conv = SpatialDropout2D(rate=Dropout_rate)(x_conv)
+    x_conv = ReLU()(x_conv)
 
-    x_conv_5 = ZeroPadding2D(padding=((1, 1), (1, 1)))(x_conv_3)
-    x_conv_5 = DepthwiseConv2D((3, 3))(x_conv_5)
-    x_conv_5 = BatchNormalization(momentum=Momentum)(x_conv_5)
-    x_conv_5 = SpatialDropout2D(rate=Dropout_rate)(x_conv_5)
-    x_conv_5 = ReLU()(x_conv_5)
+    x_conv = ZeroPadding2D(padding=((1, 1), (1, 1)))(x_conv)
+    x_conv = DepthwiseConv2D((3, 3))(x_conv)
+    x_conv = BatchNormalization(momentum=Momentum)(x_conv)
+    x_conv = ReLU()(x_conv)
 
-    x_conv_7 = ZeroPadding2D(padding=((1, 1), (1, 1)))(x_conv_5)
-    x_conv_7 = DepthwiseConv2D((3, 3))(x_conv_7)
-    x_conv_7 = BatchNormalization(momentum=Momentum)(x_conv_7)
-    x_conv_7 = SpatialDropout2D(rate=Dropout_rate)(x_conv_7)
-    x_conv_7 = ReLU()(x_conv_7)
+    x_conv = Conv2D(internal_depth, (1, 1))(x_conv)
+    x_conv = BatchNormalization(momentum=Momentum)(x_conv)
+    x_conv = SpatialDropout2D(rate=Dropout_rate)(x_conv)
+    x_conv = ReLU()(x_conv)
 
-    x = Concatenate(axis=3)([x_conv_3, x_conv_5, x_conv_7])
-    x = Conv2D(internal_depth * 3, (1, 1))(x)
-    x = BatchNormalization(momentum=Momentum)(x)
-    x = SpatialDropout2D(rate=Dropout_rate)(x)
-    x = ReLU()(x)
-    x = Concatenate(axis=3)([x_skip, x])
+    x = Concatenate(axis=3)([x_skip, x_conv])
 
     if size == "up":
         x = UpSampling2D(size=(2, 2))(x)
@@ -46,8 +38,7 @@ def Multi_Conv(x, output_depth, size="same", activation=True, internal_depth_rat
         x = MaxPooling2D(pool_size=(2, 2))(x)
 
     x = ZeroPadding2D(padding=((1, 1), (1, 1)))(x)
-    x = DepthwiseConv2D((3, 3))(x)
-    x = Conv2D(output_depth, (1, 1))(x)
+    x = Conv2D(output_depth, (3, 3))(x)
     if activation is True:
         x = BatchNormalization(momentum=Momentum)(x)
         x = SpatialDropout2D(rate=Dropout_rate)(x)
@@ -59,30 +50,42 @@ def Multi_Conv(x, output_depth, size="same", activation=True, internal_depth_rat
 def DAE_Net(input_shape=(32, 32, 3)):
     inputs = Input(shape=input_shape)
 
-    x_0 = Multi_Conv(inputs, 8)
-    x = Multi_Conv(x_0, 16, size="down")
-    x_1 = Multi_Conv(x, 16)
-    x = Multi_Conv(x_1, 32, size="down")
-    x_2 = Multi_Conv(x, 32)
+    x_skip = MaxPooling2D(pool_size=(2, 2))(inputs)
+    x = Multi_Conv(inputs, 16, internal_depth_ratio=2, size="down")
+    x = Multi_Conv(x, 16, internal_depth_ratio=2)
+    x = Concatenate(axis=3)([x, x_skip])
+    x_0 = x
+
+    x_skip = MaxPooling2D(pool_size=(2, 2))(x)
+    x = Multi_Conv(x_0, 32, size="down")
+    x = Multi_Conv(x, 32)
+    x = Concatenate(axis=3)([x, x_skip])
+    x_1 = x
+
+    x_skip = MaxPooling2D(pool_size=(2, 2))(x)
     x = Multi_Conv(x, 64, size="down")
     x = Multi_Conv(x, 64)
+    x = Concatenate(axis=3)([x, x_skip])
+    x_2 = x
 
-    x_0 = MaxPooling2D(pool_size=(4, 4))(x_0)
-    x_0 = MaxPooling2D(pool_size=(2, 2))(x_0)
-    x_1 = MaxPooling2D(pool_size=(4, 4))(x_1)
-    x_2 = MaxPooling2D(pool_size=(2, 2))(x_2)
-    x = Concatenate(axis=3)([x, x_2, x_0, x_1])
+    x_1 = UpSampling2D(size=(2, 2))(x_1)
+    x_2 = UpSampling2D(size=(4, 4))(x_2)
+    x = Concatenate(axis=3)([x_0, x_1, x_2])
+    x = Multi_Conv(x, 8, internal_depth_ratio=1)
 
-    for _ in range(3):
-        x = Multi_Conv(x, 128)
+    x_skip = x
+    x = Multi_Conv(x, 16)
+    x = Multi_Conv(x, 16, size="up")
+    x_skip = UpSampling2D(size=(2, 2))(x_skip)
+    x = Concatenate(axis=3)([x, x_skip])
 
-    x_2 = Multi_Conv(x, 64)
-    x_2 = Multi_Conv(x_2, 64, size="up")
-    x_1 = Multi_Conv(x_2, 32)
-    x_1 = Multi_Conv(x_1, 32, size="up")
-    x = Multi_Conv(x_1, 16, size="up")
-    x = Multi_Conv(x, 8)
+    x_skip = x
+    x = Multi_Conv(x, 8, internal_depth_ratio=2)
+    x = Multi_Conv(x, 8, internal_depth_ratio=2)
+    x = Concatenate(axis=3)([x, x_skip])
     x = Multi_Conv(x, 3, internal_depth_ratio=1)
+    x = Multi_Conv(x, 3, internal_depth_ratio=1, activation=False)
+    x = ReLU()(x)
     outputs = x
 
     model = Model(inputs, outputs)

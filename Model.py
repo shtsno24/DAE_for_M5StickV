@@ -51,20 +51,20 @@ def DAE_Net(input_shape=(32, 32, 3)):
     inputs = Input(shape=input_shape)
 
     x_skip = MaxPooling2D(pool_size=(2, 2))(inputs)
-    x = Multi_Conv(inputs, 16, internal_depth_ratio=2, size="down")
-    x = Multi_Conv(x, 16, internal_depth_ratio=2)
+    x = Multi_Conv(inputs, 8, internal_depth_ratio=2, size="down")
+    x = Multi_Conv(x, 8, internal_depth_ratio=2)
     x = Concatenate(axis=3)([x, x_skip])
     x_0 = x
 
     x_skip = MaxPooling2D(pool_size=(2, 2))(x)
-    x = Multi_Conv(x_0, 32, size="down")
-    x = Multi_Conv(x, 32)
+    x = Multi_Conv(x_0, 16, size="down")
+    x = Multi_Conv(x, 16)
     x = Concatenate(axis=3)([x, x_skip])
     x_1 = x
 
     x_skip = MaxPooling2D(pool_size=(2, 2))(x)
-    x = Multi_Conv(x, 64, size="down")
-    x = Multi_Conv(x, 64)
+    x = Multi_Conv(x, 32, size="down")
+    x = Multi_Conv(x, 32)
     x = Concatenate(axis=3)([x, x_skip])
     x_2 = x
 
@@ -81,9 +81,8 @@ def DAE_Net(input_shape=(32, 32, 3)):
 
     x_skip = x
     x = Multi_Conv(x, 8, internal_depth_ratio=2)
-    x = Multi_Conv(x, 8, internal_depth_ratio=2)
-    x = Concatenate(axis=3)([x, x_skip])
     x = Multi_Conv(x, 3, internal_depth_ratio=1)
+    x = Concatenate(axis=3)([x, x_skip])
     x = Multi_Conv(x, 3, internal_depth_ratio=1, activation=False)
     x = ReLU()(x)
     outputs = x

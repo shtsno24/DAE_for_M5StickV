@@ -1,1 +1,0 @@
-sudo docker run --gpus all -e "TF_FORCE_GPU_ALLOW_GROWTH=true" -it tensorflow/tensorflow:latest-gpu-py3

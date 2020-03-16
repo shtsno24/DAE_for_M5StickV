@@ -1,1 +1,0 @@
-./ncc/ncc compile Model.tflite Model.kmodel -i tflite -o kmodel --dataset ./Img/ --dataset-format image --inference-type uint8 --input-mean 0 --input-std 1 --dump-ir --input-type uint8 --max-allocator-solve-secs 120 --calibrate-method l2

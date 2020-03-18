@@ -35,7 +35,7 @@ clock = time.clock()
 
 img_object = image.Image()
 color_list = [0, 0, 0]
-scale = 3
+scale = 1
 
 while True:
     try:
@@ -43,6 +43,7 @@ while True:
         img = sensor.snapshot()         # Take a picture and return the image.
         fmap = kpu.forward(task, img)
         data_tuple = fmap[:]
+
         for i in range(1024):
             for c in range(3):
                 data = data_tuple[c * 1024 + i]
@@ -52,12 +53,12 @@ while True:
                 if data > 255:
                     data = 255
                 color_list[c] = int(data)
-            x = i % 32
-            y = int(i / 32)
+            _w = i % 32
+            _h = int(i / 32)
             color_tuple = (color_list[0], color_list[1], color_list[2])
-            for _x in range(scale):
-                for _y in range(scale):
-                    a = img_object.set_pixel(scale * x + _x, scale * y + _y, color_tuple)
+            for _w_ in range(scale):
+                for _h_ in range(scale):
+                    a = img_object.set_pixel(scale * _w + _w_, scale * _h + _h_, color_tuple)
 
         fps = clock.fps()
         fps_0 = int(fps)

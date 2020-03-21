@@ -1,4 +1,6 @@
 __pycache__
 *.sh
+*.bat
 ncc
+ncc.exe
 *.dot

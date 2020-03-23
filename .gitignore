@@ -3,4 +3,4 @@ __pycache__
 ncc
 ncc.exe
 *.dot
-*.sh
+./M5StickV/MultiThread_Test.py

@@ -2,7 +2,8 @@ import sensor, image, time, lcd
 import KPU as kpu
 import ulab as np
 
-lcd.init(freq=24000000)
+
+lcd.init(freq=40000000)
 lcd.rotation(2)  # Rotate the lcd 180deg
 sensor.reset()
 

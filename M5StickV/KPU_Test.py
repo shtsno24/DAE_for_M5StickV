@@ -36,7 +36,7 @@ clock = time.clock()
 
 img_object = image.Image()
 color_list = [0, 0, 0]
-scale = 1
+scale = 3
 
 while True:
     try:

@@ -4,6 +4,8 @@ This project is to implement CNN-based Deep AutoEncoder on M5StickV(K210) using 
 
 To get more infomaton, visit my blog : https://www.shtsno24.tokyo/
 
+https://www.shtsno24.tokyo/2020/03/nncase-v020.html
+
 ## Requirement
 
 ## Auther
